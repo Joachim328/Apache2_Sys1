@@ -1,0 +1,30 @@
+- name: Déploiement des sites
+  hosts: localhost
+  become: true
+  vars:
+    site_content: "<html><body><h1>Bienvenue sur ce site </h1></body></html>"
+  tasks:
+    - name: Création des noms de domaine à l'aide d'un script
+      script: script/Myscript.js
+      register: script_out
+
+    - name: Création des répertoires des sites
+      file:
+        path: "/var/www/{{ item }}"
+        state: directory
+      loop: "{{ script_out.stdout_lines }}"
+
+    - name: Copier les contenus
+      copy:
+        content: "{{ site_content }}"
+        dest: "/var/www/{{ item }}/index.html"
+      loop: "{{ script_out.stdout_lines }}"
+
+    - name: Création des fichiers de configurations d'Apache2
+      template:
+        src: "ansible/virtual_host.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ item }}.conf"
+      loop: "{{ script_out.stdout_lines }}"
+      notify: Reload Apache2
+
+    
