@@ -25,6 +25,21 @@
         src: "ansible/virtual_host.conf.j2"
         dest: "/etc/apache2/sites-available/{{ item }}.conf"
       loop: "{{ script_out.stdout_lines }}"
+      notify: Reload 
+      
+      - name: Activer les sites Apache2
+      command: a2ensite {{ item }}.conf
+      loop: "{{ script_out.stdout_lines }}"
       notify: Reload Apache2
+
+
+  handlers:
+    - name: Reload Apache2
+      service:
+        name: apache2
+        state: reloaded    - name: Reload Apache2
+      service:
+        name: apache2
+        state: reloaded
 
     
